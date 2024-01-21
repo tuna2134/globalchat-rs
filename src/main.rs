@@ -13,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
     let token: String = env::var("DISCORD_TOKEN")?;
 
-    let intents: Intents = Intents::GUILD_MESSAGES | Intents::GUILDS;
+    let intents: Intents = Intents::GUILD_MESSAGES | Intents::GUILDS | Intents::MESSAGE_CONTENT;
     let mut shard: Shard = Shard::new(ShardId::ONE, token.clone(), intents);
     let http: HttpClient = HttpClient::new(token.clone());
     let cache: InMemoryCache = InMemoryCache::builder()
@@ -51,6 +51,9 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
             }
             for channel in state.cache.iter().channels() {
                 if channel.name != Some("globalchat-rs".to_string()) {
+                    continue;
+                }
+                if channel.id == message.channel_id {
                     continue;
                 }
                 let webhooks = state
