@@ -71,6 +71,7 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                         .await?
                         .model()
                         .await?
+                        .clone()
                 };
             }
         }
