@@ -19,7 +19,7 @@ async fn main() -> anyhow::Result<()> {
     let cache: InMemoryCache = InMemoryCache::builder()
         .resource_types(ResourceType::CHANNEL)
         .build();
-    let state: Arc<AppState> = Arc::new(AppState { http, cache: cache });
+    let state: Arc<AppState> = Arc::new(AppState { http, cache });
     loop {
         let event: Event = match shard.next_event().await {
             Ok(event) => event,
@@ -62,7 +62,7 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                 let webhook = webhooks
                     .iter()
                     .find(|webhook| webhook.name == Some("globalchat-rs".to_string()));
-                let webhook = if let Some(existed_webhook) = webhook {
+                let _webhook = if let Some(existed_webhook) = webhook {
                     existed_webhook.clone()
                 } else {
                     state
