@@ -96,7 +96,7 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                         "https://cdn.discordapp.com/avatars/{}/{}.png",
                         message.author.id, avatar_hash
                     ))
-                    .allowed_mentions(None)
+                    .allowed_mentions(Some(&AllowedMentions::default()))
                     .await?;
             }
         }
