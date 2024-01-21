@@ -43,6 +43,9 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
             log::info!("The bot is ready!");
         }
         Event::MessageCreate(message) => {
+            if message.author.bot {
+                return Ok(());
+            }
             let channel = state.cache.channel(message.channel_id);
             if let Some(channel) = channel {
                 if channel.name != Some("globalchat-rs".to_string()) {
@@ -54,6 +57,7 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                     continue;
                 }
                 if channel.id == message.channel_id {
+                    println!("Same channel");
                     continue;
                 }
                 let webhooks = state
