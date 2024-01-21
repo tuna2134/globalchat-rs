@@ -1,6 +1,7 @@
 use std::{env, sync::Arc};
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Event, Intents, Shard, ShardId};
+use twilight_model::channel::message::AllowedMentions;
 use twilight_http::Client as HttpClient;
 
 struct AppState {
@@ -95,6 +96,7 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                         "https://cdn.discordapp.com/avatars/{}/{}.png",
                         message.author.id, avatar_hash
                     ))
+                    .allowed_mentions(None)
                     .await?;
             }
         }
