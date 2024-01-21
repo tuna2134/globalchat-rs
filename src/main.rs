@@ -65,7 +65,7 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                 let webhook = if let Some(existed_webhook) = webhook {
                     existed_webhook.clone()
                 } else {
-                    &state
+                    state
                         .http
                         .create_webhook(channel.id, "globalchat-rs")?
                         .await?
