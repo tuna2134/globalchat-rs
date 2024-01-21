@@ -81,12 +81,10 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                 };
                 let avatar_hash = if let Some(avatar) = message.author.avatar.as_ref() {
                     avatar.to_string()
+                } else if message.author.discriminator == 0 {
+                    (message.author.id.get() >> (22 % 6)).to_string()
                 } else {
-                    if message.author.discriminator == 0 {
-                        (message.author.id.get() >> 22 % 6).to_string()
-                    } else {
-                        (message.author.discriminator % 5).to_string()
-                    }
+                    (message.author.discriminator % 5).to_string()
                 };
                 state
                     .http
