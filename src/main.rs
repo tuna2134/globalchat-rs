@@ -57,7 +57,6 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                     continue;
                 }
                 if channel.id == message.channel_id {
-                    println!("Same channel");
                     continue;
                 }
                 let webhooks = state
@@ -80,10 +79,24 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                         .await?
                         .clone()
                 };
+                let avatar_hash = if let Some(avatar) = message.author.avatar.as_ref() {
+                    avatar.to_string()
+                } else {
+                    if message.author.discriminator == 0 {
+                        (message.author.id.get() >> 22 % 6).to_string()
+                    } else {
+                        (message.author.discriminator % 5).to_string()
+                    }
+                };
                 state
                     .http
                     .execute_webhook(webhook.id, &webhook.token.unwrap_or("".to_string()))
                     .content(&message.content)?
+                    .username(&message.author.name)?
+                    .avatar_url(&format!(
+                        "https://cdn.discordapp.com/avatars/{}/{}.png",
+                        message.author.id, avatar_hash
+                    ))
                     .await?;
             }
         }
