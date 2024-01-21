@@ -73,7 +73,9 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                         .await?
                         .clone()
                 };
-                state.http.execute_webhook(webhook.id, &webhook.token.unwrap_or("".to_string()))
+                state
+                    .http
+                    .execute_webhook(webhook.id, &webhook.token.unwrap_or("".to_string()))
                     .content(&message.content)?
                     .await?;
             }
