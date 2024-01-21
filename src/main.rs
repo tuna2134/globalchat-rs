@@ -62,7 +62,7 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                 let webhook = webhooks
                     .iter()
                     .find(|webhook| webhook.name == Some("globalchat-rs".to_string()));
-                let _webhook = if let Some(existed_webhook) = webhook {
+                let webhook = if let Some(existed_webhook) = webhook {
                     existed_webhook.clone()
                 } else {
                     state
@@ -73,6 +73,9 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                         .await?
                         .clone()
                 };
+                state.http.execute_webhook(webhook.id, &webhook.token.unwrap_or("".to_string()))
+                    .content(&message.content)?
+                    .await?;
             }
         }
         _ => {}
