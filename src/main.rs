@@ -53,6 +53,20 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                     return Ok(());
                 }
             }
+            let mut attachments: Vec<Attachment> = Vec::new();
+            for attachment in &message.attachments {
+                    let data = reqwest::Client::new()
+                        .get(&attachment.url)
+                        .send()
+                        .await?
+                        .bytes()
+                        .await?;
+                    attachments.push(Attachment::from_bytes(
+                        attachment.filename.clone(),
+                        data.to_vec(),
+                        attachment.id.get(),
+                    ));
+                }
             for channel in state.cache.iter().channels() {
                 if channel.name != Some("globalchat-rs".to_string()) {
                     continue;
@@ -87,20 +101,6 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                 } else {
                     (message.author.discriminator % 5).to_string()
                 };
-                let mut attachments: Vec<Attachment> = Vec::new();
-                for attachment in &message.attachments {
-                    let data = reqwest::Client::new()
-                        .get(&attachment.url)
-                        .send()
-                        .await?
-                        .bytes()
-                        .await?;
-                    attachments.push(Attachment::from_bytes(
-                        attachment.filename.clone(),
-                        data.to_vec(),
-                        attachment.id.get(),
-                    ));
-                }
                 state
                     .http
                     .execute_webhook(webhook.id, &webhook.token.unwrap_or("".to_string()))
