@@ -1,0 +1,32 @@
+name: Add binary to release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+    - uses: dtolnay/rust-toolchain@stable
+    - name: Compile
+      run: cargo build --release
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          target/release/globalchat-rs
