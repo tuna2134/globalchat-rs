@@ -1,8 +1,8 @@
 use std::{env, sync::Arc};
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Event, Intents, Shard, ShardId};
-use twilight_model::channel::message::AllowedMentions;
 use twilight_http::Client as HttpClient;
+use twilight_model::{channel::message::AllowedMentions, http::attachment::Attachment};
 
 struct AppState {
     http: HttpClient,
@@ -87,10 +87,25 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                 } else {
                     (message.author.discriminator % 5).to_string()
                 };
+                let mut attachments: Vec<Attachment> = Vec::new();
+                for attachment in &message.attachments {
+                    let data = reqwest::Client::new()
+                        .get(&attachment.url)
+                        .send()
+                        .await?
+                        .bytes()
+                        .await?;
+                    attachments.push(Attachment::from_bytes(
+                        attachment.filename.clone(),
+                        data.to_vec(),
+                        attachment.id.get(),
+                    ));
+                }
                 state
                     .http
                     .execute_webhook(webhook.id, &webhook.token.unwrap_or("".to_string()))
                     .content(&message.content)?
+                    .attachments(&attachments)?
                     .username(&message.author.name)?
                     .avatar_url(&format!(
                         "https://cdn.discordapp.com/avatars/{}/{}.png",
