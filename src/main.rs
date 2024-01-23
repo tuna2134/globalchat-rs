@@ -13,6 +13,7 @@ struct AppState {
 async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
     let token: String = env::var("DISCORD_TOKEN")?;
+    env_logger::init();
 
     let intents: Intents = Intents::GUILD_MESSAGES | Intents::GUILDS | Intents::MESSAGE_CONTENT;
     let mut shard: Shard = Shard::new(ShardId::ONE, token.clone(), intents);
