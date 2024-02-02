@@ -11,10 +11,10 @@ COPY . .
 RUN --mount=type=cache,target=/src/builder/target/ cargo build --target=$ARCH-unknown-linux-musl --release && \
   cp target/$ARCH-unknown-linux-musl/release/globalchat-rs /tmp/globalchat-rs
 
-FROM scratch
+FROM alpine
 
 WORKDIR /src/app
 
 COPY --from=builder /tmp/globalchat-rs .
 
-CMD ["./hello"]
+CMD ["./globalchat-rs"]

@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  bot:
+    build: .
+    container_name: globalchat-rs
+    resources:
+      limits:
+        memory: 0.5Gi
+        cpu: 1
+    env_file: ./.env
