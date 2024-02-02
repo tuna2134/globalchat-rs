@@ -8,5 +8,5 @@ services:
       resources:
         limits:
           memory: 50M
-          cpus: 0.1
+          cpus: "0.1"
     env_file: ./.env
