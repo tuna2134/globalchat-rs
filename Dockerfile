@@ -2,7 +2,7 @@ FROM rust:slim AS builder
 
 WORKDIR /src/builder
 
-ENV ARCH x86_64
+ENV ARCH aarch64
 
 RUN apt-get update && apt-get install -y musl-tools
 RUN rustup target add $ARCH-unknown-linux-musl
