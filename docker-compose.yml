@@ -7,6 +7,6 @@ services:
     deploy:
       resources:
         limits:
-          memory: 50Mi
+          memory: 50M
           cpus: 0.1
     env_file: ./.env
