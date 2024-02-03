@@ -2,6 +2,7 @@ version: "3"
 
 services:
   bot:
+    image: ghcr.io/tuna2134/globalchat-rs
     build: .
     container_name: globalchat-rs
     deploy:
