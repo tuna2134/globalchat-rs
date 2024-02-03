@@ -19,10 +19,13 @@ COPY . .
 RUN --mount=type=cache,target=/src/builder/target/ cargo build --target=$(cat /tmp/arch)-unknown-linux-musl --release && \
   cp target/$(cat /tmp/arch)-unknown-linux-musl/release/globalchat-rs /tmp/globalchat-rs
 
+FROM alpine AS get-ssl
+
 FROM scratch
 
-WORKDIR /src/app
+COPY --from=get-ssl /etc/ssl /etc/ssl
 
+WORKDIR /src/app
 COPY --from=builder /tmp/globalchat-rs .
 
 CMD ["./globalchat-rs"]
