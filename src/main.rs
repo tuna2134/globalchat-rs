@@ -3,7 +3,14 @@ use tokio::sync::RwLock;
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Event, Intents, Shard, ShardId};
 use twilight_http::Client as HttpClient;
-use twilight_model::{channel::message::AllowedMentions, gateway::{payload::outgoing::UpdatePresence, presence::{Activity, ActivityType, Status}}, http::attachment::Attachment};
+use twilight_model::{
+    channel::message::AllowedMentions,
+    gateway::{
+        payload::outgoing::UpdatePresence,
+        presence::{Activity, ActivityType, Status},
+    },
+    http::attachment::Attachment,
+};
 
 struct AppState {
     http: HttpClient,
@@ -45,34 +52,35 @@ async fn main() -> anyhow::Result<()> {
 async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> {
     match event {
         Event::Ready(_) => {
-            log::info!("The bot is ready!");
-            state.shard.write().await.command(
-                &UpdatePresence::new(
-                    vec![
-                        Activity {
-                            application_id: None,
-                            assets: None,
-                            buttons: Vec::new(),
-                            created_at: None,
-                            details: None,
-                            emoji: None,
-                            flags: None,
-                            id: None,
-                            instance: None,
-                            kind: ActivityType::Playing,
-                            name: format!("v{}", env!("CARGO_PKG_VERSION")),
-                            party: None,
-                            secrets: None,
-                            state: None,
-                            timestamps: None,
-                            url: None,
-                        }
-                    ],
+            state
+                .shard
+                .write()
+                .await
+                .command(&UpdatePresence::new(
+                    vec![Activity {
+                        application_id: None,
+                        assets: None,
+                        buttons: Vec::new(),
+                        created_at: None,
+                        details: None,
+                        emoji: None,
+                        flags: None,
+                        id: None,
+                        instance: None,
+                        kind: ActivityType::Playing,
+                        name: format!("v{}", env!("CARGO_PKG_VERSION")),
+                        party: None,
+                        secrets: None,
+                        state: None,
+                        timestamps: None,
+                        url: None,
+                    }],
                     true,
                     None,
                     Status::Online,
-                )?
-            ).await?;
+                )?)
+                .await?;
+            log::info!("The bot is ready!");
         }
         Event::MessageCreate(message) => {
             if message.author.bot {
