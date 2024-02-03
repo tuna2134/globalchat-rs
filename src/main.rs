@@ -11,10 +11,10 @@ struct AppState {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    log::info!("Now booting...");
     dotenvy::dotenv().ok();
-    let token: String = env::var("DISCORD_TOKEN")?;
     env_logger::init();
+    log::info!("Now booting...");
+    let token: String = env::var("DISCORD_TOKEN")?;
 
     let intents: Intents = Intents::GUILD_MESSAGES | Intents::GUILDS | Intents::MESSAGE_CONTENT;
     let mut shard: Shard = Shard::new(ShardId::ONE, token.clone(), intents);
