@@ -17,7 +17,7 @@ RUN rustup target add $(cat /tmp/arch)-unknown-linux-musl
 
 COPY . .
 RUN --mount=type=cache,target=/src/builder/target/ cargo build --target=$(cat /tmp/arch)-unknown-linux-musl --release && \
-  cp target/$(cat /arch)-unknown-linux-musl/release/globalchat-rs /tmp/globalchat-rs
+  cp target/$(cat /tmp/arch)-unknown-linux-musl/release/globalchat-rs /tmp/globalchat-rs
 
 FROM scratch
 
