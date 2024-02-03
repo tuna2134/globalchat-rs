@@ -11,6 +11,7 @@ struct AppState {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    log::info!("Now booting...");
     dotenvy::dotenv().ok();
     let token: String = env::var("DISCORD_TOKEN")?;
     env_logger::init();
