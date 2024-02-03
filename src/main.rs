@@ -1,15 +1,18 @@
+use sqlx::MySqlPool;
 use std::{env, sync::Arc};
 use tokio::sync::RwLock;
 use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Event, Intents, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 use twilight_model::{
-    channel::message::AllowedMentions, gateway::{
+    channel::message::AllowedMentions,
+    gateway::{
         payload::outgoing::UpdatePresence,
         presence::{Activity, ActivityType, Status},
-    }, http::attachment::Attachment,
+    },
+    http::attachment::Attachment,
+    id::Id,
 };
-use sqlx::MySqlPool;
 mod db;
 mod utils;
 use utils::AppState;
@@ -28,8 +31,13 @@ async fn main() -> anyhow::Result<()> {
         .resource_types(ResourceType::CHANNEL)
         .build();
     let pool = MySqlPool::connect(&env::var("DATABASE_URL")?).await?;
-    sqlx::migrate!().run(&pool).await?; 
-    let state: Arc<AppState> = Arc::new(AppState { http, cache, shard, pool });
+    sqlx::migrate!().run(&pool).await?;
+    let state: Arc<AppState> = Arc::new(AppState {
+        http,
+        cache,
+        shard,
+        pool,
+    });
     loop {
         let event: Event = match state.shard.write().await.next_event().await {
             Ok(event) => event,
@@ -119,7 +127,7 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                 } else {
                     (message.author.discriminator % 5).to_string()
                 };
-                state
+                let msg = state
                     .http
                     .execute_webhook(webhook.id, &webhook.token.unwrap_or("".to_string()))
                     .content(&message.content)?
@@ -133,6 +141,44 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                     .wait()
                     .await?
                     .model()
+                    .await?;
+                db::create_message(
+                    &state.pool,
+                    message.id.get() as i64,
+                    msg.id.get() as i64,
+                    msg.channel_id.get() as i64,
+                )
+                .await?;
+            }
+        }
+        Event::MessageDelete(message) => {
+            for (message_id, channel_id) in
+                db::get_messages(&state.pool, message.id.get() as i64).await?
+            {
+                let webhook = utils::get_webhook(&state, Id::new(channel_id as u64)).await?;
+                state
+                    .http
+                    .delete_webhook_message(
+                        webhook.id,
+                        &webhook.token.unwrap(),
+                        Id::new(message_id as u64),
+                    )
+                    .await?;
+            }
+        }
+        Event::MessageUpdate(message) => {
+            for (message_id, channel_id) in
+                db::get_messages(&state.pool, message.id.get() as i64).await?
+            {
+                let webhook = utils::get_webhook(&state, Id::new(channel_id as u64)).await?;
+                state
+                    .http
+                    .update_webhook_message(
+                        webhook.id,
+                        &webhook.token.unwrap(),
+                        Id::new(message_id as u64),
+                    )
+                    .content(Some(&message.content.clone().unwrap_or(String::new())))?
                     .await?;
             }
         }

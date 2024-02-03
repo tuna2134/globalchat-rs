@@ -1,12 +1,12 @@
 use sqlx::MySqlPool;
-use twilight_http::Client as HttpClient;
+use tokio::sync::RwLock;
 use twilight_cache_inmemory::InMemoryCache;
 use twilight_gateway::Shard;
+use twilight_http::Client as HttpClient;
 use twilight_model::{
     channel::Webhook,
     id::{marker::ChannelMarker, Id},
 };
-use tokio::sync::RwLock;
 
 pub struct AppState {
     pub http: HttpClient,
@@ -15,8 +15,12 @@ pub struct AppState {
     pub pool: MySqlPool,
 }
 
-pub async fn get_webhook(state: &AppState, channel_id: Id<ChannelMarker>) -> anyhow::Result<Webhook> {
-    let webhooks = state.http
+pub async fn get_webhook(
+    state: &AppState,
+    channel_id: Id<ChannelMarker>,
+) -> anyhow::Result<Webhook> {
+    let webhooks = state
+        .http
         .channel_webhooks(channel_id)
         .await?
         .model()
@@ -27,7 +31,8 @@ pub async fn get_webhook(state: &AppState, channel_id: Id<ChannelMarker>) -> any
     let webhook = if let Some(existed_webhook) = webhook {
         existed_webhook.clone()
     } else {
-        state.http
+        state
+            .http
             .create_webhook(channel_id, "globalchat-rs")?
             .await?
             .model()
