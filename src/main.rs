@@ -11,11 +11,13 @@ use twilight_model::{
     },
     http::attachment::Attachment,
 };
+use sqlx::MySqlPool;
 
 struct AppState {
     http: HttpClient,
     cache: InMemoryCache,
     shard: RwLock<Shard>,
+    pool: MySqlPool,
 }
 
 #[tokio::main]
@@ -31,7 +33,8 @@ async fn main() -> anyhow::Result<()> {
     let cache: InMemoryCache = InMemoryCache::builder()
         .resource_types(ResourceType::CHANNEL)
         .build();
-    let state: Arc<AppState> = Arc::new(AppState { http, cache, shard });
+    let pool = MySqlPool::connect(&env::var("DATABASE_URL")?).await?;
+    let state: Arc<AppState> = Arc::new(AppState { http, cache, shard, pool });
     loop {
         let event: Event = match state.shard.write().await.next_event().await {
             Ok(event) => event,
