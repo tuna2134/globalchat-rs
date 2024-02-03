@@ -36,8 +36,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}
           cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.new-buildx-cache,mode=max
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
       - name: Update buildx cache
         run: |
           rm -rf /tmp/.buildx-cache
-          mv /tmp/.new-buildx-cache/. /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new. /tmp/.buildx-cache
