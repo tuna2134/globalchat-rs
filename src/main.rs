@@ -4,21 +4,15 @@ use twilight_cache_inmemory::{InMemoryCache, ResourceType};
 use twilight_gateway::{Event, Intents, Shard, ShardId};
 use twilight_http::Client as HttpClient;
 use twilight_model::{
-    channel::message::AllowedMentions,
-    gateway::{
+    channel::message::AllowedMentions, gateway::{
         payload::outgoing::UpdatePresence,
         presence::{Activity, ActivityType, Status},
-    },
-    http::attachment::Attachment,
+    }, http::attachment::Attachment,
 };
 use sqlx::MySqlPool;
-
-struct AppState {
-    http: HttpClient,
-    cache: InMemoryCache,
-    shard: RwLock<Shard>,
-    pool: MySqlPool,
-}
+mod db;
+mod utils;
+use utils::AppState;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -34,6 +28,7 @@ async fn main() -> anyhow::Result<()> {
         .resource_types(ResourceType::CHANNEL)
         .build();
     let pool = MySqlPool::connect(&env::var("DATABASE_URL")?).await?;
+    sqlx::migrate!().run(&pool).await?; 
     let state: Arc<AppState> = Arc::new(AppState { http, cache, shard, pool });
     loop {
         let event: Event = match state.shard.write().await.next_event().await {
@@ -116,26 +111,7 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                 if channel.id == message.channel_id {
                     continue;
                 }
-                let webhooks = state
-                    .http
-                    .channel_webhooks(channel.id)
-                    .await?
-                    .model()
-                    .await?;
-                let webhook = webhooks
-                    .iter()
-                    .find(|webhook| webhook.name == Some("globalchat-rs".to_string()));
-                let webhook = if let Some(existed_webhook) = webhook {
-                    existed_webhook.clone()
-                } else {
-                    state
-                        .http
-                        .create_webhook(channel.id, "globalchat-rs")?
-                        .await?
-                        .model()
-                        .await?
-                        .clone()
-                };
+                let webhook = utils::get_webhook(&state, channel.id).await?;
                 let avatar_hash = if let Some(avatar) = message.author.avatar.as_ref() {
                     avatar.to_string()
                 } else if message.author.discriminator == 0 {
@@ -154,6 +130,9 @@ async fn handle_event(state: Arc<AppState>, event: Event) -> anyhow::Result<()> 
                         message.author.id, avatar_hash
                     ))
                     .allowed_mentions(Some(&AllowedMentions::default()))
+                    .wait()
+                    .await?
+                    .model()
                     .await?;
             }
         }
