@@ -12,7 +12,7 @@ RUN if [ $TARGETARCH = "amd64" ]; then \
         exit 1; \
     fi
 
-RUN apt-get update && apt-get install -y musl-tools
+RUN apt-get update && apt-get install -y musl-tools clang llvm
 RUN rustup target add $(cat /tmp/arch)-unknown-linux-musl
 
 COPY . .
