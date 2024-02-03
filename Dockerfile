@@ -23,7 +23,7 @@ FROM alpine AS get-ssl
 
 FROM scratch
 
-COPY --from=get-ssl /etc/ssl /etc/ssl
+COPY --from=get-ssl /etc/ssl/certs /etc/ssl/certs
 
 WORKDIR /src/app
 COPY --from=builder /tmp/globalchat-rs .
