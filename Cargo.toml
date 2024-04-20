@@ -12,7 +12,7 @@ env_logger = "0.11.3"
 log = "0.4.21"
 reqwest = { version = "0.12.4", default-features = false, features = ["rustls-tls"] }
 sqlx = { version = "0.7.4", features = ["runtime-tokio", "mysql"] }
-tokio = { version = "1.36.0", features = ["full"] }
+tokio = { version = "1.37.0", features = ["full"] }
 twilight-cache-inmemory = "0.15.4"
 twilight-gateway = "0.15.4"
 twilight-http = "0.15.4"
